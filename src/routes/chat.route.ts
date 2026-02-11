@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { selectProvider } from "../providers";
 import { logger } from "../logger";
+import { extractProviderError } from "../utils/provider-error";
 import type { ChatRequest } from "../types";
 
 export async function chatRoute(req: Request, res: Response): Promise<void> {
@@ -82,15 +83,20 @@ export async function chatRoute(req: Request, res: Response): Promise<void> {
     );
   } catch (error) {
     const durationMs = Date.now() - startTime;
+    const details = extractProviderError(error);
+
+    // Full error goes to server logs for debugging
     logger.error(
       { provider: provider.name, model: selectedModel, durationMs, error },
       "Provider failed"
     );
 
+    // Clean, readable response for the client
     if (!res.headersSent) {
-      res.status(502).json({
-        error: "AI provider error",
+      res.status(details.status).json({
+        error: details.message,
         provider: provider.name,
+        model: selectedModel,
       });
     }
   }
