@@ -104,12 +104,11 @@ app.use(
 );
 
 // Start server
-app.listen(env.port, env.host, () => {
+app.listen(env.port, () => {
   const providers = getAvailableProviders();
   logger.info(
     {
       port: env.port,
-      host: env.host,
       providers: providers.map((p) => ({
         name: p.name,
         defaultModel: p.defaultModel,
