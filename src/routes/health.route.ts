@@ -6,7 +6,11 @@ export function healthRoute(_req: Request, res: Response): void {
 
   res.json({
     status: "ok",
-    providers: providers.map((p) => p.name),
+    providers: providers.map((p) => ({
+      name: p.name,
+      defaultModel: p.defaultModel,
+      availableModels: p.availableModels,
+    })),
     providerCount: providers.length,
     timestamp: new Date().toISOString(),
   });

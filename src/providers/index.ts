@@ -37,14 +37,56 @@ if (providers.length === 0) {
 
 let currentIndex = 0;
 
-export function selectNextProvider(): AIProvider | undefined {
+interface ProviderSelection {
+  provider: AIProvider;
+  model: string;
+}
+
+/**
+ * Selects a provider based on the request parameters.
+ *
+ * - If `providerName` is specified → use that exact provider (with custom model or its default).
+ * - If nothing is specified → round-robin across available providers with their default models.
+ *
+ * The available models list in each provider is informational only (exposed via /health).
+ * No validation or routing is performed based on it.
+ */
+export function selectProvider(
+  providerName?: string,
+  model?: string
+): ProviderSelection | undefined {
   if (providers.length === 0) {
     return undefined;
   }
 
+  // Explicit provider requested → use exactly that one
+  if (providerName) {
+    const provider = providers.find(
+      (p) => p.name.toLowerCase() === providerName.toLowerCase()
+    );
+
+    if (!provider) {
+      return undefined;
+    }
+
+    return {
+      provider,
+      model: model ?? provider.defaultModel,
+    };
+  }
+
+  // No provider specified → round-robin
   const provider = providers[currentIndex];
   currentIndex = (currentIndex + 1) % providers.length;
-  return provider;
+
+  if (!provider) {
+    return undefined;
+  }
+
+  return {
+    provider,
+    model: provider.defaultModel,
+  };
 }
 
 export function getAvailableProviders(): AIProvider[] {

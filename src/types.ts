@@ -3,7 +3,15 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface ChatRequest {
+  messages: ChatMessage[];
+  provider?: string;
+  model?: string;
+}
+
 export interface AIProvider {
   readonly name: string;
-  chat(messages: ChatMessage[]): Promise<AsyncIterable<string>>;
+  readonly defaultModel: string;
+  readonly availableModels: readonly string[];
+  chat(messages: ChatMessage[], model?: string): Promise<AsyncIterable<string>>;
 }

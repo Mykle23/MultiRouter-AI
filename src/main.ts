@@ -14,20 +14,39 @@ const app = express();
 app.use(helmet());
 
 // HTTP request logging
-app.use(pinoHttp({ logger }));
+app.use(
+  pinoHttp({
+    logger,
+    autoLogging: {
+      ignore: (req) => req.url === "/health",
+    },
+    serializers: {
+      req: (req) => ({
+        method: req.method,
+        url: req.url,
+        remoteAddress: req.remoteAddress,
+      }),
+      res: (res) => ({
+        statusCode: res.statusCode,
+      }),
+    },
+  })
+);
 
 // JSON body parsing
 app.use(express.json({ limit: "1mb" }));
 
-// Rate limiting
-app.use(
-  rateLimit({
-    windowMs: 60 * 1000,
-    max: env.rateLimitMax,
-    standardHeaders: true,
-    legacyHeaders: false,
-  })
-);
+// Rate limiting (disabled when RATE_LIMIT_MAX=0)
+if (env.rateLimitMax > 0) {
+  app.use(
+    rateLimit({
+      windowMs: 60 * 1000,
+      max: env.rateLimitMax,
+      standardHeaders: true,
+      legacyHeaders: false,
+    })
+  );
+}
 
 // Authentication middleware
 app.use((req, res, next) => {
@@ -88,7 +107,15 @@ app.use(
 app.listen(env.port, env.host, () => {
   const providers = getAvailableProviders();
   logger.info(
-    { port: env.port, host: env.host, providers: providers.map((p) => p.name) },
+    {
+      port: env.port,
+      host: env.host,
+      providers: providers.map((p) => ({
+        name: p.name,
+        defaultModel: p.defaultModel,
+        models: p.availableModels.length,
+      })),
+    },
     "Server started"
   );
 });
