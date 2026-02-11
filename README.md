@@ -1,6 +1,6 @@
 <div align="center">
 
-# MultiRouter AI
+# ⚡ MultiRouter AI
 
 ### A Lightweight AI Gateway for TypeScript
 
@@ -11,7 +11,7 @@ Route chat completions across multiple AI providers with a single, unified API.
 ![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=nodedotjs&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-[Getting Started](#quick-start) · [API Reference](#api-reference) · [Configuration](#configuration) · [How It Works](#how-it-works)
+[Getting Started](#-quick-start) · [API Reference](#-api-reference) · [Configuration](#-configuration) · [How It Works](#-how-it-works)
 
 </div>
 
@@ -33,17 +33,17 @@ MultiRouter AI solves this by exposing a **single HTTP endpoint** that rotates r
 ## Table of Contents
 
 - [Why MultiRouter AI?](#why-multirouter-ai)
-- [Supported Providers](#supported-providers)
-- [Quick Start](#quick-start)
-- [API Reference](#api-reference)
-- [Configuration](#configuration)
-- [How It Works](#how-it-works)
-- [Tech Stack](#tech-stack)
-- [License](#license)
+- [Supported Providers](#-supported-providers)
+- [Quick Start](#-quick-start)
+- [API Reference](#-api-reference)
+- [Configuration](#-configuration)
+- [How It Works](#-how-it-works)
+- [Tech Stack](#-tech-stack)
+- [License](#-license)
 
 ---
 
-## Supported Providers
+## 🔌 Supported Providers
 
 | Provider | Default Model | Streaming | Status |
 | :--- | :--- | :---: | :---: |
@@ -59,7 +59,7 @@ MultiRouter AI solves this by exposing a **single HTTP endpoint** that rotates r
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
@@ -121,11 +121,11 @@ curl -N http://localhost:3000/chat \
 
 You should see a streaming text response from one of your configured providers.
 
-<p align="right">(<a href="#multirouter-ai">back to top</a>)</p>
+<p align="right">(<a href="#-multirouter-ai">back to top</a>)</p>
 
 ---
 
-## API Reference
+## 📡 API Reference
 
 ### `POST /chat`
 
@@ -259,11 +259,11 @@ Returns server status with the full list of active providers, their default mode
 
 > Use this endpoint to discover which providers are active and which models you can use in your requests.
 
-<p align="right">(<a href="#multirouter-ai">back to top</a>)</p>
+<p align="right">(<a href="#-multirouter-ai">back to top</a>)</p>
 
 ---
 
-## Configuration
+## 🔧 Configuration
 
 All settings are managed through environment variables. See [`.env.example`](.env.example) for the full template.
 
@@ -289,11 +289,11 @@ Each provider requires only its API key. The model is optional and falls back to
 | OpenRouter | `OPENROUTER_API_KEY` | `OPENROUTER_MODEL` | `meta-llama/llama-3.3-70b-instruct` |
 | Google Gemini | `GEMINI_API_KEY` | `GEMINI_MODEL` | `gemini-2.5-flash` |
 
-<p align="right">(<a href="#multirouter-ai">back to top</a>)</p>
+<p align="right">(<a href="#-multirouter-ai">back to top</a>)</p>
 
 ---
 
-## How It Works
+## 🔄 How It Works
 
 ```
                     ┌──────────────┐
@@ -343,11 +343,11 @@ Each provider requires only its API key. The model is optional and falls back to
 4. **Provider streams** the completion back through the gateway to the client in real time.
 5. If a provider fails, the gateway returns a descriptive error with the HTTP status, provider name, and model.
 
-<p align="right">(<a href="#multirouter-ai">back to top</a>)</p>
+<p align="right">(<a href="#-multirouter-ai">back to top</a>)</p>
 
 ---
 
-## Tech Stack
+## 🛠 Tech Stack
 
 | Category | Technology |
 | :--- | :--- |
@@ -361,7 +361,7 @@ Each provider requires only its API key. The model is optional and falls back to
 
 ---
 
-## License
+## 📄 License
 
 Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
 
@@ -369,6 +369,6 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
 
 <div align="center">
 
-**[Back to Top](#multirouter-ai)**
+**[Back to Top](#-multirouter-ai)**
 
 </div>
