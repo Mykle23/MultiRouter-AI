@@ -4,21 +4,26 @@ import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
 import { env } from "./config/env";
 import { logger } from "./logger";
-import { chatRoute } from "./routes/chat.route";
+import { initializeRegistry } from "./providers/registry";
+import { chatCompletionsRoute } from "./routes/v1/chat-completions";
+import { modelsRoute } from "./routes/v1/models";
 import { healthRoute } from "./routes/health.route";
-import { getAvailableProviders } from "./providers";
+
+// ── Bootstrap ──────────────────────────────────────
+const registry = initializeRegistry();
 
 const app = express();
 
-// Security headers
+// ── Security ───────────────────────────────────────
 app.use(helmet());
 
-// HTTP request logging
+// ── HTTP request logging ───────────────────────────
 app.use(
   pinoHttp({
     logger,
     autoLogging: {
-      ignore: (req) => req.url === "/health",
+      ignore: (req) =>
+        req.url === "/health" || req.url === "/v1/models",
     },
     serializers: {
       req: (req) => ({
@@ -26,17 +31,15 @@ app.use(
         url: req.url,
         remoteAddress: req.remoteAddress,
       }),
-      res: (res) => ({
-        statusCode: res.statusCode,
-      }),
+      res: (res) => ({ statusCode: res.statusCode }),
     },
-  })
+  }),
 );
 
-// JSON body parsing
+// ── Body parsing ───────────────────────────────────
 app.use(express.json({ limit: "1mb" }));
 
-// Rate limiting (disabled when RATE_LIMIT_MAX=0)
+// ── Rate limiting ──────────────────────────────────
 if (env.rateLimitMax > 0) {
   app.use(
     rateLimit({
@@ -44,77 +47,91 @@ if (env.rateLimitMax > 0) {
       max: env.rateLimitMax,
       standardHeaders: true,
       legacyHeaders: false,
-    })
+    }),
   );
 }
 
-// Authentication middleware
+// ── Authentication ─────────────────────────────────
 app.use((req, res, next) => {
-  // Skip auth if no API_KEY is configured
   if (!env.apiKey) {
     next();
     return;
   }
 
-  // Allow health check without auth
-  if (req.path === "/health") {
+  // Public endpoints — no auth required
+  if (req.path === "/health" || req.path === "/v1/models") {
     next();
     return;
   }
 
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
-    res
-      .status(401)
-      .json({ error: "Missing or invalid Authorization header" });
+    res.status(401).json({
+      error: {
+        message: "Missing or invalid Authorization header",
+        type: "invalid_request_error",
+      },
+    });
     return;
   }
 
   const token = authHeader.slice(7);
   if (token !== env.apiKey) {
-    res.status(401).json({ error: "Invalid API key" });
+    res.status(401).json({
+      error: {
+        message: "Invalid API key",
+        type: "invalid_request_error",
+      },
+    });
     return;
   }
 
   next();
 });
 
-// Routes
-app.post("/chat", chatRoute);
+// ── Routes ─────────────────────────────────────────
+app.post("/v1/chat/completions", chatCompletionsRoute);
+app.get("/v1/models", modelsRoute);
 app.get("/health", healthRoute);
 
-// 404 handler
+// ── 404 ────────────────────────────────────────────
 app.use((_req: express.Request, res: express.Response) => {
-  res.status(404).json({ error: "Route not found" });
+  res.status(404).json({
+    error: { message: "Route not found", type: "invalid_request_error" },
+  });
 });
 
-// Error handler (must have 4 params for Express to recognize it)
+// ── Global error handler ───────────────────────────
 app.use(
   (
     err: Error,
     _req: express.Request,
     res: express.Response,
-    _next: express.NextFunction
+    _next: express.NextFunction,
   ) => {
     logger.error(err, "Unhandled error");
     if (!res.headersSent) {
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({
+        error: { message: "Internal server error", type: "server_error" },
+      });
     }
-  }
+  },
 );
 
-// Start server
+// ── Start ──────────────────────────────────────────
 app.listen(env.port, () => {
-  const providers = getAvailableProviders();
+  const instances = registry.getAllInstances();
   logger.info(
     {
       port: env.port,
-      providers: providers.map((p) => ({
-        name: p.name,
-        defaultModel: p.defaultModel,
-        models: p.availableModels.length,
+      strategy: registry.getDefaultStrategy(),
+      instances: instances.map((i) => ({
+        id: i.config.id,
+        type: i.config.type,
+        models: i.config.models.length,
       })),
+      totalInstances: instances.length,
     },
-    "Server started"
+    "MultiRouter AI started",
   );
 });

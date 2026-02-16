@@ -1,17 +1,28 @@
 import type { Request, Response } from "express";
-import { getAvailableProviders } from "../providers";
+import { getRegistry } from "../providers/registry";
 
+/**
+ * `GET /health`
+ *
+ * Returns server status with every registered provider instance
+ * and its current status.
+ */
 export function healthRoute(_req: Request, res: Response): void {
-  const providers = getAvailableProviders();
+  const registry = getRegistry();
+  const instances = registry.getAllInstances();
 
   res.json({
     status: "ok",
-    providers: providers.map((p) => ({
-      name: p.name,
-      defaultModel: p.defaultModel,
-      availableModels: p.availableModels,
+    routing: registry.getDefaultStrategy(),
+    providers: instances.map((i) => ({
+      id: i.config.id,
+      type: i.config.type,
+      status: i.status,
+      models: i.config.models,
+      errorCount: i.errorCount,
     })),
-    providerCount: providers.length,
+    providerCount: instances.length,
+    activeCount: instances.filter((i) => i.status === "active").length,
     timestamp: new Date().toISOString(),
   });
 }

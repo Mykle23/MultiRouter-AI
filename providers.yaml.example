@@ -1,0 +1,98 @@
+# ╔═══════════════════════════════════════════════════════════════╗
+# ║  MultiRouter AI — Provider Configuration                     ║
+# ╚═══════════════════════════════════════════════════════════════╝
+#
+# This file defines your AI provider instances and routing strategy.
+# Copy to providers.yaml and fill in your API keys.
+#
+# API keys can be placed directly here (recommended for local dev)
+# or referenced from environment variables: ${VAR_NAME}
+#
+# Routing strategies:
+#   exhaust      — Use providers in order until rate-limited,
+#                  then failover to the next one (default)
+#   round-robin  — Distribute requests evenly across all providers
+#
+# Order matters: providers are tried top-to-bottom.
+# Put free tiers first and paid providers last.
+
+routing:
+  default_strategy: exhaust
+  retry_after_seconds: 300   # Re-enable failed providers after 5 min
+
+providers:
+  # ── Groq (free tier) ─────────────────────────────────────────
+  - id: groq-1
+    type: groq
+    api_key: your-groq-api-key
+    models:
+      - llama-3.3-70b-versatile
+      - llama-3.1-8b-instant
+      - qwen/qwen3-32b
+
+  # Stack more Groq free-tier accounts:
+  # - id: groq-2
+  #   type: groq
+  #   api_key: your-second-groq-key
+  #   models:
+  #     - llama-3.3-70b-versatile
+
+  # - id: groq-3
+  #   type: groq
+  #   api_key: your-third-groq-key
+  #   models:
+  #     - llama-3.3-70b-versatile
+
+  # ── Cerebras (free tier) ─────────────────────────────────────
+  - id: cerebras-1
+    type: cerebras
+    api_key: your-cerebras-api-key
+    models:
+      - llama-3.3-70b
+      - llama3.1-8b
+
+  # ── Google Gemini (free tier) ────────────────────────────────
+  - id: gemini-1
+    type: gemini
+    api_key: your-gemini-api-key
+    models:
+      - gemini-2.5-flash
+      - gemini-2.5-pro
+
+  # ── OpenRouter ───────────────────────────────────────────────
+  - id: openrouter-1
+    type: openrouter
+    api_key: your-openrouter-api-key
+    models:
+      - meta-llama/llama-3.3-70b-instruct
+      - anthropic/claude-sonnet-4
+      - google/gemini-2.5-flash
+
+  # ── OpenAI (paid — listed last so free tiers are used first) ─
+  - id: openai-1
+    type: openai
+    api_key: your-openai-api-key
+    models:
+      - gpt-4o
+      - gpt-4o-mini
+      - gpt-4.1
+      - gpt-4.1-mini
+      - gpt-4.1-nano
+
+  # ── Custom OpenAI-compatible endpoint ────────────────────────
+  # Works with Ollama, LM Studio, vLLM, or any OpenAI-compat API
+  # - id: local-ollama
+  #   type: openai-compatible
+  #   base_url: http://localhost:11434/v1
+  #   api_key: ollama
+  #   models:
+  #     - llama3.2
+  #     - codellama
+
+  # ── Using environment variables (for Docker / CI / production) ─
+  # Instead of putting keys directly, reference env vars:
+  # - id: groq-ci
+  #   type: groq
+  #   api_key: ${GROQ_API_KEY}
+  #   models:
+  #     - llama-3.3-70b-versatile
